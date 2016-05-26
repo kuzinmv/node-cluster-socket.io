@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test chat</title>
+</head>
+<style>
+    .chat-area {
+        min-height: 300px;
+        border: 1px solid #eee;
+    }
+    input {
+        font-size:16px;
+    }
+
+    button {
+        font-size:16px;
+    }
+
+</style>
+
+<body>
+<h1>Chat here!</h1>
+UserId: <input type="text" name="userId" id="userId" value="10001"/>
+<button id="connect">Connect</button>
+<button id="disconnect">Disconnect</button>
+<div class="chat-area">
+</div>
+<input type="text" name="text" id="text"/>
+<button id="send">Send</button>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.4/socket.io.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script>
+    var socket = null;
+    var $chat = $('.chat-area');
+    $('#connect').click(function(){
+        if (socket != null) {
+            return;
+        }
+        socket = io.connect('http://localhost:9001', {
+            query: 'userId=' + $('#userId').val() + '&token=<MY_SECRET_TOKEN>',
+            forceNew: true
+        });
+
+        socket.on('this', function (data) {
+            $chat.append('<div> COMMON IN : '+data+'</div>');
+        });
+
+        socket.on('response', function (data) {
+            $chat.append('<div> ACCEPTED : '+data+'</div>');
+        });
+
+        socket.on('internal', function (data) {
+            $chat.append('<div> INTERNAL : '+data+'</div>');
+        });
+
+        socket.on('error', function (data) {
+            $chat.append('<div> ERROR : '+data+'</div>');
+        });
+
+    });
+
+    $('#disconnect').click(function(){
+        socket.disconnect();
+        socket = null;
+    });
+
+    $('#send').click(function(){
+        socket.emit('request', $("#userId").val(), $("#text").val());
+        $("#text").val('');
+    });
+
+</script>
+
+
+</body>
+</html>
